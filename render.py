@@ -10,6 +10,10 @@ PROJECTS = PROJECTS.split(' ')
 FAIL = 0
 OK = 1
 VALIDATOR_FAIL = 2
+try:
+    os.mkdir('logs')
+except FileExistsError:
+    pass
 
 def debug(*args,**kwargs):
     if DEBUG:
@@ -40,9 +44,8 @@ def parse(line, postfn):
     if ps['kind'] != 'REWORK' or change['project'] not in PROJECTS:
         print('not matching project')
         return 1
-    print(DEBUG)
     if DEBUG:
-        log = open(change['id'] + '.log', 'w')
+        log = open('logs/' + change['id'] + '.log', 'w')
     else:
         log = subprocess.DEVNULL
     cid = str(change['number'])

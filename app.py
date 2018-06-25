@@ -25,13 +25,8 @@ def post_comment(project, change, commit, link, verified=0):
             },
     }
     changeid = quote(project, safe='') + '~' + str(change)
-    print(changeid, obj)
     url = 'https://' + HOST + '/a/changes/' + changeid + '/revisions/' + commit + '/review'
-    print(url)
     res = requests.post(url, json=obj, auth=auth)
-    print(res.text)
-
-
 
 class Streamer(threading.Thread):
     def run(self):
@@ -56,6 +51,4 @@ stream.start()
 
 while True:
     line = msgq.get()
-    ret = parse(line, post_comment)
-    if ret != 0:
-        print('failed to render changeset')
+    parse(line, post_comment)
