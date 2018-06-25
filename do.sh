@@ -25,6 +25,10 @@ EXIT_CODE=3
 for i in 0; do # use this to make sure we clean up at the end
 
     bundle install || break
+    EXIT_CODE=4
+    # special exit code if this one fails, so runner knows to -2
+    bundle exec ruby test/validate.rb > validation.log || break
+    EXIT_CODE=3
     echo "baseurl: $baseurl" > _config_ci.yml || break
     JEKYLL_ENV=$commit bundle exec jekyll build --config _config.yml,_config_ci.yml || break
 
@@ -34,6 +38,10 @@ for i in 0; do # use this to make sure we clean up at the end
     mv _site $dest || break
     EXIT_CODE=0
 done
+
+if [ $EXIT_CODE -eq 4 ]; then
+    mv validation.log $dest.log
+fi
 
 git worktree remove --force .
 

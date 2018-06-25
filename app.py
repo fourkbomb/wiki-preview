@@ -9,12 +9,20 @@ from urllib.parse import quote
 
 msgq = Queue()
 
-def post_comment(project, change, commit, link):
+def post_comment(project, change, commit, link, verified=0):
     auth = HTTPBasicAuth(username=USER, password=PASSWORD)
+    message = ''
+    if verified == 1:
+        message = 'Passes validator. Preview: {}'.format(link)
+    elif verified == -1:
+        message = 'Fails validator. Error log: {}'.format(link)
     obj = {
-            'message': 'Preview: ' + link + ' (will be updated with each new patch set).',
+            'message': message,
             'notify': 'NONE',
             'tag': 'preview',
+            'labels': {
+                'Verified': verified,
+            },
     }
     changeid = quote(project, safe='') + '~' + str(change)
     print(changeid, obj)

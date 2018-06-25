@@ -7,6 +7,10 @@ import time
 from config import *
 PROJECTS = PROJECTS.split(' ')
 
+FAIL = 0
+OK = 1
+VALIDATOR_FAIL = 2
+
 def debug(*args,**kwargs):
     if DEBUG:
         print(*args, **kwargs)
@@ -14,14 +18,19 @@ def debug(*args,**kwargs):
 def fetch_render_change(change, commit, ref, log=subprocess.DEVNULL):
     if '/' in commit:
         print("%s isn't a valid commit hash"%commit)
-        return False
+        return FAIL
     os.chdir(PATH)
+    ret = OK
     proc = subprocess.run(['sh', '../do.sh', change, commit, ref, WEBROOT_WEB_BASE + change, WEBROOT_PATH + '/' + change], stdout=log, stderr=log)
-    if proc.returncode != 0:
+    if proc.returncode == 4:
+        debug("validator failed!")
+        ret = VALIDATOR_FAIL
+    elif proc.returncode != 0:
         debug("render failed!")
+        ret = FAIL
 
     os.chdir('..')
-    return True
+    return ret
 
 
 def parse(line, postfn):
@@ -40,13 +49,14 @@ def parse(line, postfn):
     ret = fetch_render_change(cid, ps['revision'], ps['ref'], log=log)
     if DEBUG:
         log.close()
-    if ret:
+    if ret == OK:
         link = WEBROOT_WEB_URL + WEBROOT_WEB_BASE + cid
-        if ps['number'] == 1:
-            print('post link')
-            postfn(change['project'], change['number'], ps['revision'], link)
+        postfn(change['project'], change['number'], ps['revision'], link, 1)
         print('rendered at', link)
         return 0
+    elif ret == VALIDATOR_FAIL:
+        link = WEBROOT_WEB_URL + WEBROOT_WEB_BASE + cid + '.log'
+        postfn(change['project'], change['number'], ps['revision'], link, -1)
     else:
         print("failed")
         return 1
