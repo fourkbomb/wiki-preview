@@ -41,7 +41,7 @@ def parse(line, postfn):
     obj = json.loads(line)
     ps = obj['patchSet']
     change = obj['change']
-    if ps['kind'] != 'REWORK' or change['project'] not in PROJECTS:
+    if ps['kind'] == 'NO_CHANGE' or ps['kind'] == 'NO_CODE_CHANGE' or change['project'] not in PROJECTS:
         print('not matching project')
         return 1
     if DEBUG:
